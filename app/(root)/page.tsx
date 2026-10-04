@@ -2,9 +2,12 @@ import QuestionCard from '@/components/cards/QuestionCard';
 import HomeFilter from '@/components/filters/HomeFilter';
 import LocalSearch from '@/components/search/LocalSearch';
 import { Button } from '@/components/ui/button';
+import handleError from '@/lib/handlers/error';
+import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/http-errors';
 import ROUTES from '@/constants/routes';
 import Link from 'next/link';
 import React from 'react';
+import dbConnect from '@/lib/mongoose';
 
 const questions = [
   {
@@ -49,53 +52,64 @@ const questions = [
 
 // query=ariyan
 interface SearchParams {
-  searchParams: Promise<{ [key: string]: string}>
+  searchParams: Promise<{ [key: string]: string }>
 }
 
-const Home = async ({searchParams}: SearchParams) => { 
+const test = async () => {
+  try {
+    await dbConnect();
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+
+const Home = async ({ searchParams }: SearchParams) => {
   const { query = "", filter = "" } = await searchParams;
 
-  const filteredQuestions = questions.filter(( question ) => {
+  await test();
+
+  const filteredQuestions = questions.filter((question) => {
     const matchesQuery = question.title
       .toLowerCase()
       .includes(query.toLowerCase());
-      const matchesFilter = filter
+    const matchesFilter = filter
       ? question.tags[0].name.toLowerCase() === filter.toLowerCase()
       : true;
-      return matchesQuery && matchesFilter;
+    return matchesQuery && matchesFilter;
   });
 
   return (
     <>
-    <section className='flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center'>
-      <h1 className='h1-bold text-dark100_light900'>All Questions</h1>
-      <Button
-        className='primary-gradient min-h-[46px] px-4 py-3 !text-light-900'
-        nativeButton={false}
-        render={<Link href={ROUTES.ASK_QUESTION} />}
-      >
-        Ask a Question
-      </Button>
-    </section>
+      <section className='flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center'>
+        <h1 className='h1-bold text-dark100_light900'>All Questions</h1>
+        <Button
+          className='primary-gradient min-h-[46px] px-4 py-3 !text-light-900'
+          nativeButton={false}
+          render={<Link href={ROUTES.ASK_QUESTION} />}
+        >
+          Ask a Question
+        </Button>
+      </section>
 
-    <section className='mt-11'>
-      <LocalSearch
-        route="/"
-        imgSrc="/icons/search.svg"
-        placeholder="Search questions..." 
-        otherClasses="flex-1"      
-      />
-    </section>
+      <section className='mt-11'>
+        <LocalSearch
+          route="/"
+          imgSrc="/icons/search.svg"
+          placeholder="Search questions..."
+          otherClasses="flex-1"
+        />
+      </section>
 
-     <HomeFilter/>
+      <HomeFilter />
 
-    <div className='mt-10 flex w-full flex-col gap-6'>
-      {filteredQuestions.map((question) => ( 
-        <QuestionCard key={question._id} question={question} />
-      ))}
-    </div>
+      <div className='mt-10 flex w-full flex-col gap-6'>
+        {filteredQuestions.map((question) => (
+          <QuestionCard key={question._id} question={question} />
+        ))}
+      </div>
 
-       
+
     </>
   );
 };
