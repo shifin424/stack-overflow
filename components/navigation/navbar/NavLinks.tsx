@@ -25,7 +25,6 @@ return (
         const LinkComponent = (
             <Link
               href={item.route}
-              key={item.lable}
               className={cn( isActive
                 ? "primary-gradient rounded-lg text-light-900"
                 : "text-dark300_light900",
@@ -47,9 +46,11 @@ return (
         );
 
         return isMobileNav ? (
-            <SheetClose asChild key={item.route}>
-                {LinkComponent}
-            </SheetClose>
+            <SheetClose
+              key={item.route}
+              nativeButton={false}
+              render={LinkComponent}
+            />
         ) : (
             <React.Fragment key={item.route}>{LinkComponent}</React.Fragment>
         );

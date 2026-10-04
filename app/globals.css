@@ -576,4 +576,13 @@ body {
   .dark .tab[data-state="active"] {
     background-color: var(--dark-300);
   }
+
+  .custom-scrollbar {
+    scrollbar-width: none; /* for Firefox */
+    -ms-overflow-style: none; /* for Internet Explorer and Edge */
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none; /* for Chrome, Safari */
+  }
+  
 }
