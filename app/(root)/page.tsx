@@ -3,11 +3,11 @@ import HomeFilter from '@/components/filters/HomeFilter';
 import LocalSearch from '@/components/search/LocalSearch';
 import { Button } from '@/components/ui/button';
 import handleError from '@/lib/handlers/error';
-import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/http-errors';
 import ROUTES from '@/constants/routes';
 import Link from 'next/link';
-import React from 'react';
 import dbConnect from '@/lib/mongoose';
+import { api } from '@/lib/api';
+import { auth } from '@/auth';
 
 const questions = [
   {
@@ -55,20 +55,23 @@ interface SearchParams {
   searchParams: Promise<{ [key: string]: string }>
 }
 
-const test = async () => {
-  try {
-    await dbConnect();
-  } catch (error) {
-    return handleError(error);
-  }
-}
+//  const test = async () => {
+//     try {
+//        return await api.users.getAll();
+//     } catch (error) {
+//       return handleError(error);
+//     }
+//   }
 
 
 const Home = async ({ searchParams }: SearchParams) => {
   const { query = "", filter = "" } = await searchParams;
 
-  await test();
-
+//  const users = await test();
+//   console.log(users);
+const session = await auth();
+  console.log("Session: ", session);
+  
   const filteredQuestions = questions.filter((question) => {
     const matchesQuery = question.title
       .toLowerCase()
