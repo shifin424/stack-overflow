@@ -1,9 +1,11 @@
-import qs from "query-string" 
+import qs from "query-string"
 
 interface UrlQueryParams {
     params: string;
     key: string;
     value: string;
+    /** Keys dropped in the same step, e.g. `page` when a filter changes. */
+    keysToRemove?: string[];
 }
 
 interface RemoveUrlQueryParams {
@@ -11,10 +13,12 @@ interface RemoveUrlQueryParams {
     keysToRemove: string[];
 }
 
-export const formUrlQuery = ({ params,key,value } : UrlQueryParams) => {
+export const formUrlQuery = ({ params, key, value, keysToRemove = [] } : UrlQueryParams) => {
     const queryString = qs.parse(params);
 
+    keysToRemove.forEach((k) => delete queryString[k]);
     queryString[key] = value;
+
     return qs.stringifyUrl({
         url: window.location.pathname,
         query: queryString,

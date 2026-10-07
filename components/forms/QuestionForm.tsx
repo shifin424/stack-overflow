@@ -1,6 +1,8 @@
 "use client";
    
 import React, { useRef } from "react";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form"; 
 
 import { Button } from "../ui/button";
@@ -16,53 +18,56 @@ import {
 import { Input } from "../ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AskQuestionSchema } from "@/lib/validations";
-import { title } from "process";
 import dynamic from "next/dynamic";
 import { MDXEditorMethods } from "@mdxeditor/editor";
 import { z } from "zod";
 import TagCard from "../cards/TagCard";
+import ROUTES from "@/constants/routes";
+import { toast } from "@/hooks/use-toast";
+import { createQuestion, editQuestion } from "@/lib/actions/question.action";
 
 const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
   
 
-const QuestionForm = () => {
+interface Props {
+  question?: Question;
+  isEdit?: boolean;
+}
 
-  const editorRef = useRef<MDXEditorMethods>(null); 
+const QuestionForm = ({ question, isEdit = false }: Props) => {
+  const router = useRouter();
+  const editorRef = useRef<MDXEditorMethods>(null);
 
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      tags: [],
+      title: question?.title ?? "",
+      content: question?.content ?? "",
+      tags: question?.tags.map((tag) => tag.name) ?? [],
     },
   });
 
   const handleInputKeyDown = ( e: React.KeyboardEvent<HTMLInputElement>,
     field: { value: string[]}
   ) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const tagInput = e.currentTarget.value.trim();
+      if (e.key !== "Enter") return;
+      e.preventDefault();
 
-        if (tagInput && tagInput.length < 15 && !field.value.includes(tagInput)) {
-          form.setValue("tags",[...field.value, tagInput]);
-          e.currentTarget.value = "";
-          form.clearErrors("tags");
-        } else if(tagInput.length > 15) {
-          form.setError("tags", {
-            type: "manual",
-            message: "Tag should be less then 15 characters",
-          });
-        } else if (field.value.includes(tagInput)) {
-          form.setError("tags", {
-            type: "manual",
-            message: "Tag Already exists"
-          });
-        }
-      }
+      const tagInput = e.currentTarget.value.trim();
+      if (!tagInput) return;
+
+      const fail = (message: string) =>
+        form.setError("tags", { type: "manual", message });
+
+      if (tagInput.length > 15) return fail("Tag should be 15 characters or fewer");
+      if (field.value.some((t) => t.toLowerCase() === tagInput.toLowerCase())) return fail("Tag already exists");
+      if (field.value.length >= 3) return fail("Cannot add more than 3 tags");
+
+      form.setValue("tags", [...field.value, tagInput]);
+      e.currentTarget.value = "";
+      form.clearErrors("tags");
   };
 
   const handleTagRemove = (tag: string, field: { value: string[] }) => {
@@ -77,16 +82,32 @@ const QuestionForm = () => {
     }
   }
 
-  const handleCreateQuestion = (data: z.infer<typeof AskQuestionSchema>) => {
-    console.log(data);
+  const handleSubmit = async (data: z.infer<typeof AskQuestionSchema>) => {
+    const result = isEdit && question
+      ? await editQuestion({ questionId: question._id, ...data })
+      : await createQuestion(data);
+
+    if (!result.success) {
+      return toast({
+        title: "Error",
+        description: result.error?.message ?? "Something went wrong",
+        variant: "destructive",
+      });
+    }
+
+    toast({
+      title: "Success",
+      description: isEdit ? "Question updated successfully" : "Question created successfully",
+    });
+
+    if (result.data) router.push(ROUTES.QUESTION(result.data._id));
   };
-  
 
   return (
     <Form {...form}>
       <form
         className="flex w-full flex-col gap-10" 
-        onSubmit={form.handleSubmit(handleCreateQuestion)}
+        onSubmit={form.handleSubmit(handleSubmit)}
       >
         <FormField
           control={form.control}
@@ -157,7 +178,7 @@ const QuestionForm = () => {
                   key={tag}
                   _id={tag}
                   name={tag}
-                  compack
+                  compact
                   remove
                   isButton
                   handleRemove = {() => handleTagRemove(tag,field)} 
@@ -182,9 +203,18 @@ const QuestionForm = () => {
         <div className="mt-16 flex justify-end">
           <Button
             type="submit"
+            disabled={form.formState.isSubmitting}
             className="primary-gradient w-fit !text-light-900"
           >
-            Ask A Question
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" /> Submitting...
+              </>
+            ) : isEdit ? (
+              "Edit Question"
+            ) : (
+              "Ask A Question"
+            )}
           </Button>
         </div>
       </form>

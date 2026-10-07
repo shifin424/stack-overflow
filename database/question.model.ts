@@ -28,6 +28,8 @@ const QuestionSchema = new Schema<IQuestion>(
     },
 );
 
+QuestionSchema.index({ createdAt: -1 });
+
 const Question = models?.Question || model<IQuestion>("Question", QuestionSchema);
 
 export default Question;

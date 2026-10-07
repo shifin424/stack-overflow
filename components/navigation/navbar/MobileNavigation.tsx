@@ -13,8 +13,13 @@ import {
 } from "@/components/ui/sheet";
 import ROUTES from "@/constants/routes"; 
 import NavLinks from "./NavLinks";
+import { auth } from "@/auth";
+import LogoutButton from "../LogoutButton";
 
-const MobileNavigation = () => {
+const MobileNavigation = async () => {
+  const session = await auth();
+  const userId = session?.user?.id;
+
   return (
     <Sheet>
       <SheetTrigger className="sm:hidden">
@@ -46,10 +51,14 @@ const MobileNavigation = () => {
 
         <div className="no-scrollbar flex h-[calc(100vh-80px)] flex-col justify-between overflow-y-auto">
           <section className="flex h-full flex-col gap-6 pt-16">
-            <NavLinks isMobileNav />
+            <NavLinks isMobileNav userId={userId} />
           </section>
 
           <div className="flex flex-col gap-3">
+            {userId ? (
+              <LogoutButton compactOnLarge={false} />
+            ) : (
+              <>
             <SheetClose
               nativeButton={false}
               render={
@@ -75,6 +84,8 @@ const MobileNavigation = () => {
             >
               Sign Up
             </SheetClose>
+              </>
+            )}
           </div>
         </div>
       </SheetContent>

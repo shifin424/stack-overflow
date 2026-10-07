@@ -1,62 +1,54 @@
 "use client"
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Input } from '../ui/input';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { formUrlQuery, removeKeysFromUrlQuery } from '@/lib/url';
+import { cn } from '@/lib/utils';
 
 interface Props {
-    route: string;
     imgSrc: string;
     placeholder: string;
     otherClasses?: string
 }
 
-const LocalSearch = ({ route,imgSrc,placeholder,otherClasses }: Props) => {
-    const pathname = usePathname();
+const LocalSearch = ({ imgSrc,placeholder,otherClasses }: Props) => {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const query = searchParams.get("query") || "";
-    const [searchQuery, setSearchQuery] = useState(query);
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("query") || "");
+    const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            if (searchQuery) {
-                const newUrl = formUrlQuery({
-                    params: searchParams.toString(),
-                    key: "query",
-                    value: searchQuery,
-                });
-                router.push(newUrl, {scroll: false});    
-            } else {
-                if (pathname === route) {
-                    const newUrl = removeKeysFromUrlQuery({
-                        params: searchParams.toString(),
-                        keysToRemove: ["query"],
-                    });
-                    router.push(newUrl, {scroll: false});
-                }
-            }
+    // Navigation is debounced from the change handler (not an effect) so that URL
+    // changes such as back/forward never trigger a stale push of the old input.
+    const handleChange = (value: string) => {
+        setSearchQuery(value);
+        clearTimeout(timer.current);
 
-        },300);  
-        return () => clearTimeout(delayDebounceFn); 
-    },[searchQuery,router,route,searchParams,pathname]); 
+        timer.current = setTimeout(() => {
+            const params = searchParams.toString();
+            const newUrl = value
+                ? formUrlQuery({ params, key: "query", value, keysToRemove: ["page"] })
+                : removeKeysFromUrlQuery({ params, keysToRemove: ["query", "page"] });
 
+            router.push(newUrl, {scroll: false});
+        }, 300);
+    };
+
+    useEffect(() => () => clearTimeout(timer.current), []);
 
     return (
-        <div className={`background-light800_darkgradient flex min-h-[56px] grow items-center gap-4 rounded-[10px] px-4 ${otherClasses}`}>
+        <div className={cn('background-light800_darkgradient flex min-h-[56px] grow items-center gap-4 rounded-[10px] px-4', otherClasses)}>
         <Image
             src={imgSrc}
             width={24}
             height={24}
             alt='Search'
-            className='cursor-pointer' 
         />
-        <Input type='text' placeholder={placeholder} 
+        <Input type='text' placeholder={placeholder}
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className='paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none outline-none' /> 
+        onChange={(e) => handleChange(e.target.value)}
+        className='paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none outline-none' />
         </div>
     );
 };

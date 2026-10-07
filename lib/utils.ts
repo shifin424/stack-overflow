@@ -14,7 +14,8 @@ export const getDeviconClassName = (techName: string) => {
 }
 
 
-export const getTimeStamp = (date: Date) => {
+export const getTimeStamp = (input: Date | string) => {
+  const date = new Date(input);
   const now = new Date();
   const secondsAgo = Math.floor((now.getTime() - date.getTime()) / 1000);
 
@@ -36,3 +37,13 @@ export const getTimeStamp = (date: Date) => {
   }
   return "just now";
 };
+
+/** Mongoose documents and `Date`s can't cross the server/client boundary as-is. */
+export const serialize = <T>(value: unknown): T =>
+  JSON.parse(JSON.stringify(value)) as T;
+
+export const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const formatNumber = (value: number) =>
+  Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);

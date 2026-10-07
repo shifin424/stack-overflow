@@ -16,6 +16,8 @@ const TagQuestionSchema = new Schema<ITagQuestion>(
     },
 );
 
+TagQuestionSchema.index({ tag: 1, question: 1 }, { unique: true });
+
 const TagQuestion = models?.TagQuestion || model<ITagQuestion>("TagQuestion", TagQuestionSchema);
 
 export default TagQuestion;

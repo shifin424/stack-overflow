@@ -16,6 +16,8 @@ const CollectionSchema = new Schema<ICollection>(
     },
 );
 
+CollectionSchema.index({ author: 1, question: 1 }, { unique: true });
+
 const Collection = models?.Collection || model<ICollection>("Collection", CollectionSchema);
 
 export default Collection;

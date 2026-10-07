@@ -81,6 +81,26 @@ body {
   min-height: 100%;
 }
 
+/* Tailwind v4 resets buttons to the default cursor; restore the expected pointers. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  summary,
+  select,
+  label[for],
+  a[href] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -585,4 +605,95 @@ body {
     display: none; /* for Chrome, Safari */
   }
   
+
+  /* ================= MARKDOWN ================= */
+
+  .markdown {
+    color: var(--dark-300);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+
+  .dark .markdown {
+    color: var(--light-700);
+  }
+
+  .markdown > * + * {
+    margin-top: 1rem;
+  }
+
+  .markdown h1,
+  .markdown h2,
+  .markdown h3 {
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--dark-100);
+  }
+
+  .dark .markdown h1,
+  .dark .markdown h2,
+  .dark .markdown h3 {
+    color: var(--light-900);
+  }
+
+  .markdown h1 { font-size: 1.75rem; }
+  .markdown h2 { font-size: 1.5rem; }
+  .markdown h3 { font-size: 1.25rem; }
+
+  .markdown a {
+    color: var(--primary-500);
+    text-decoration: underline;
+  }
+
+  .markdown ul { list-style: disc; padding-left: 1.5rem; }
+  .markdown ol { list-style: decimal; padding-left: 1.5rem; }
+
+  .markdown blockquote {
+    border-left: 4px solid var(--primary-500);
+    padding-left: 1rem;
+    color: var(--light-400);
+  }
+
+  .markdown code {
+    background-color: var(--light-800);
+    border-radius: 4px;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.9em;
+  }
+
+  .dark .markdown code {
+    background-color: var(--dark-400);
+  }
+
+  .markdown pre {
+    background-color: var(--light-800);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  .dark .markdown pre {
+    background-color: var(--dark-300);
+  }
+
+  .markdown pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .markdown table { border-collapse: collapse; width: 100%; }
+  .markdown th,
+  .markdown td {
+    border: 1px solid var(--light-700);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .dark .markdown th,
+  .dark .markdown td {
+    border-color: var(--dark-400);
+  }
+
+  .markdown img { max-width: 100%; border-radius: 8px; }
 }

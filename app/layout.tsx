@@ -41,11 +41,11 @@ const RootLayout = async ({ children} : {children:ReactNode }) => {
         />
       </head>
 
-      <SessionProvider session={session}> 
       <body
+        suppressHydrationWarning
         className={`${inter.className} ${spaceGrotesk.variable} antialiased`}
-      > 
-
+      >
+      <SessionProvider session={session}>
       <ThemeProvider
         attribute="class"
         defaultTheme="system"
@@ -54,11 +54,10 @@ const RootLayout = async ({ children} : {children:ReactNode }) => {
       >  
       {children}
 
-      </ThemeProvider> 
+      </ThemeProvider>
       <Toaster/>
-       
-      </body>
       </SessionProvider>
+      </body>
     </html>
   );
 }

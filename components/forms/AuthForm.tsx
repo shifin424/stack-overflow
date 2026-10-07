@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   DefaultValues,
   FieldValues,
@@ -22,13 +24,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ROUTES from "@/constants/routes";
+import { toast } from "@/hooks/use-toast";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
   defaultValues: T;
-  onSubmit: (data: T) => Promise<{ success: boolean }>;
+  onSubmit: (data: T) => Promise<ActionResponse>;
   formType: "SIGN_IN" | "SIGN_UP";
 }
+
+/** Only follow same-site relative callbacks, never an arbitrary external URL. */
+const safeCallback = (value: string | null) =>
+  value && value.startsWith("/") && !value.startsWith("//") ? value : ROUTES.HOME;
 
 const AuthForm = <T extends FieldValues>({
   schema,
@@ -36,13 +43,32 @@ const AuthForm = <T extends FieldValues>({
   formType,
   onSubmit,
 }: AuthFormProps<T>) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
 
-  const handleSubmit: SubmitHandler<T> = async () => {
-    // TODO: Authenticate User
+  const handleSubmit: SubmitHandler<T> = async (data) => {
+    const result = await onSubmit(data);
+
+    if (!result.success) {
+      return toast({
+        title: `Error ${result.status ?? ""}`.trim(),
+        description: result.error?.message,
+        variant: "destructive",
+      });
+    }
+
+    toast({
+      title: "Success",
+      description: formType === "SIGN_IN" ? "Signed in successfully" : "Signed up successfully",
+    });
+
+    router.replace(safeCallback(searchParams.get("callbackUrl")));
+    router.refresh();
   };
 
   const buttonText = formType === "SIGN_IN" ? "Sign In" : "Sign Up";
@@ -69,6 +95,7 @@ const AuthForm = <T extends FieldValues>({
                   <Input
                     required
                     type={field.name === "password" ? "password" : "text"}
+                    autoComplete={field.name === "password" ? (formType === "SIGN_IN" ? "current-password" : "new-password") : field.name}
                     {...field}
                     className="paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                   />
@@ -83,16 +110,19 @@ const AuthForm = <T extends FieldValues>({
           disabled={form.formState.isSubmitting}
           className="primary-gradient paragraph-medium min-h-12 w-full rounded-2 px-4 py-3 font-inter !text-light-900"
         >
-          {form.formState.isSubmitting
-            ? buttonText === "Sign In"
-              ? "Signin In..."
-              : "Signing Up..."
-            : buttonText}
+          {form.formState.isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              {formType === "SIGN_IN" ? "Signing In..." : "Signing Up..."}
+            </>
+          ) : (
+            buttonText
+          )}
         </Button>
 
         {formType === "SIGN_IN" ? (
           <p>
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href={ROUTES.SIGN_UP}
               className="paragraph-semibold primary-text-gradient"

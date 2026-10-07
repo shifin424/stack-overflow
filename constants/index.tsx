@@ -12,7 +12,8 @@ export const sidebarLinks = [
     {
         imgURL: "/icons/star.svg",
         route: "/collection",
-        lable: "Collection"
+        lable: "Collection",
+        requiresAuth: true
     },
     {
         imgURL: "/icons/suitcase.svg",
@@ -32,6 +33,7 @@ export const sidebarLinks = [
     {
         imgURL: "/icons/question.svg",
         route: "/ask-question",
-        lable: "Ask a Question"
+        lable: "Ask a Question",
+        requiresAuth: true
     }, 
 ];

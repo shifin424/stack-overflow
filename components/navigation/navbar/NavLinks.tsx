@@ -7,24 +7,24 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const NavLinks = ({ isMobileNav = false } : {isMobileNav?: boolean}) => {
+const NavLinks = ({ isMobileNav = false, userId } : {isMobileNav?: boolean; userId?: string}) => {
     const pathname = usePathname();
-    const userId = 1; 
-     
-    
+
 return (
     <>
         {sidebarLinks.map((item) => {
-            const isActive = (pathname.includes(item.route) && item.route.length > 1) || pathname === item.route;
+            const route = item.route === "/profile"
+                ? (userId ? `/profile/${userId}` : null)
+                : item.route;
 
-            if (item.route === "/profile") {
-                if (userId) item.route = `${item.route}/${userId}`;
-                else return null;  
-            }
+            // Hide links that need a signed-in user (profile, collection, ask a question).
+            if (!route || (!userId && item.requiresAuth)) return null;
+
+            const isActive = (pathname.includes(route) && route.length > 1) || pathname === route;
 
         const LinkComponent = (
             <Link
-              href={item.route}
+              href={route}
               className={cn( isActive
                 ? "primary-gradient rounded-lg text-light-900"
                 : "text-dark300_light900",
@@ -37,7 +37,7 @@ return (
              height={20}
              className={cn({ "invert-colors": !isActive })} 
              />
-            <p className={cn( isActive ? "base-blod" : "base-medium",
+            <p className={cn( isActive ? "base-bold" : "base-medium",
                 !isMobileNav && "max-lg:hidden"
             )}>
                 {item.lable}
@@ -47,12 +47,12 @@ return (
 
         return isMobileNav ? (
             <SheetClose
-              key={item.route}
+              key={route}
               nativeButton={false}
               render={LinkComponent}
             />
         ) : (
-            <React.Fragment key={item.route}>{LinkComponent}</React.Fragment>
+            <React.Fragment key={route}>{LinkComponent}</React.Fragment>
         );
         })}  
     </>

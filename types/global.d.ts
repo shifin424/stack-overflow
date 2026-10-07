@@ -1,23 +1,62 @@
 interface Tag {
     _id: string;
     name: string;
+    questions?: number;
 }
 
 interface Author {
     _id: string;
     name: string;
-    image: string;
+    username?: string;
+    image?: string;
 }
 
 interface Question {
     _id: string;
     title: string;
+    content: string;
     tags: Tag[];
     author: Author;
     upvotes: number;
+    downvotes: number;
     answers: number;
     views: number;
-    createdAt: Date;
+    createdAt: string;
+}
+
+interface Answer {
+    _id: string;
+    author: Author;
+    content: string;
+    question: string;
+    upvotes: number;
+    downvotes: number;
+    createdAt: string;
+}
+
+interface User {
+    _id: string;
+    name: string;
+    username: string;
+    email: string;
+    bio?: string;
+    image?: string;
+    location?: string;
+    portfolio?: string;
+    reputation: number;
+    createdAt: string;
+}
+
+interface Badges {
+    GOLD: number;
+    SILVER: number;
+    BRONZE: number;
+}
+
+interface UserStats {
+    totalQuestions: number;
+    totalAnswers: number;
+    badges: Badges;
 }
 
 type ActionResponse<T = null> = {
@@ -35,3 +74,22 @@ type ErrorResponse = ActionResponse<undefined> & {success : false};
 
 type APIErrorResponse = NextResponse<ErrorResponse>;
 type APIResponse<T = null> = NextResponse<SuccessResponse<T> |  ErrorResponse>
+
+interface RouteParams {
+    params: Promise<Record<string, string>>;
+    searchParams: Promise<Record<string, string>>;
+}
+
+interface PaginatedSearchParams {
+    page?: number;
+    pageSize?: number;
+    query?: string;
+    filter?: string;
+    sort?: string;
+}
+
+type Paginated<T> = {
+    items: T[];
+    isNext: boolean;
+    total: number;
+}

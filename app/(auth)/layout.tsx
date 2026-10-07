@@ -1,6 +1,6 @@
 import SocialAuthForm from '@/components/forms/SocialAuthForm';
 import Image from 'next/image';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, Suspense } from 'react';
 
 const AuthLayout = ({ children} : {children: ReactNode}) => {
     return (
@@ -19,7 +19,7 @@ const AuthLayout = ({ children} : {children: ReactNode}) => {
             className='object-contain'
         /> 
         </div>
-        {children}
+        <Suspense>{children}</Suspense>
 
         <SocialAuthForm/>
     </section> 
